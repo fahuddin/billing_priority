@@ -42,6 +42,17 @@ def count_urgent_keywords(text):
     return sum(text.count(keyword) for keyword in urgent_keywords)
 
 def map_icd_severity(column: pd.Series):
+    icd_severity = {
+    'F32.9': 4,   # Major depressive disorder, single episode, unspecified → Severe
+    'E11.9': 3,   # Type 2 diabetes mellitus without complications → Moderate
+    'I10': 3,     # Essential (primary) hypertension → Moderate
+    'K21.9': 2,   # GERD without esophagitis → Mild to Moderate
+    'Z00.00': 1,  # General medical exam without complaint → None/Mild
+    'L40.0': 2,   # Psoriasis vulgaris → Mild to Moderate (can vary)
+    'J45.909': 3, # Unspecified asthma, uncomplicated → Moderate (if controlled)
+    'N18.3': 4,   # Chronic kidney disease stage 3 → Moderate to Severe
+    'R51': 1      # Headache → Mild (unless chronic or underlying issue)
+}
     return column.map(map_icd_severity).fillna(1)
 
 def column_length(column:pd.Series):
