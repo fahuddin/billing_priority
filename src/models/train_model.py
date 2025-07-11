@@ -14,18 +14,23 @@ def train():
     df['Date of Birth'] = pd.to_datetime(df['Date of Birth'])
     
     df = df.assign(
-    narrative_cleaned = df["narrative"].apply(preprocess_text),
-    narrative_sentiment = Sentiment_Analyzer(df["narrative"]),
-    narrative_length = column_length(df["narrative"]),
-    urgent_score = df["narrative"].apply(count_urgent_keywords),
-    map_icd_severity = df['Diagnosis Code'].apply(map_icd_severity),
-    priority_score = np.where(
-    (df['map_icd_severity'] >= 3) |
-    (df['urgent_score'] >= 2),1,0))
+        narrative_cleaned = df["narrative"].apply(preprocess_text),
+        narrative_sentiment = Sentiment_Analyzer(df["narrative"]),
+        narrative_length = column_length(df["narrative"]),
+        urgent_score = df["narrative"].apply(count_urgent_keywords),
+        severity_score = map_icd_severity(df["Diagnosis Code"])
+    ).assign(
+        priority_score = lambda d: np.where(
+            (d["severity_score"] >= 3) | (d["urgent_score"] >= 2), 1, 0
+        )
+    )
+
+    X = df.drop('priority score', axis=1)
+    Y = df['priority score']
 
 
     model = RandomForestClassifier(n_estimators=100, random_state=42)
-    
+
     model.fit(X_feat, y)
 
     evaluate_model(model, X_feat, y)
